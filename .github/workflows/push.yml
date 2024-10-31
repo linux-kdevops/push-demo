@@ -1,0 +1,35 @@
+name: Demo README incrementer
+
+on:
+  workflow_dispatch:  # Manual trigger
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Source Repository
+        uses: actions/checkout@v4
+        
+      - name: Start SSH Agent
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+          
+      - name: Configure Git
+        run: |
+          git config --global --add safe.directory '*'
+          git config --global user.name "kdevops"
+          git config --global user.email "kdevops@lists.linux.dev"
+          
+      - name: Update README
+        run: |
+          NUM=$(tail -1 README.md || echo 0)
+          let NUM=$NUM+1
+          echo $NUM >> README.md
+          
+      - name: Commit and Push
+        run: |
+          git add README.md
+          git commit -m "Increment number to $NUM"
+          git push
